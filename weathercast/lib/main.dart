@@ -23,6 +23,30 @@ class MainApp extends StatelessWidget {
           child: const Report(),
         ),
       ),
+      theme: ThemeData(
+        textTheme: const TextTheme(
+          headlineLarge: TextStyle(
+            fontSize: 32,
+            color: Colors.white
+          ),
+          displayLarge: TextStyle(
+            fontSize: 72,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+          ),
+          labelMedium: TextStyle(
+            fontSize: 18,
+            fontStyle: FontStyle.italic,
+            color: Colors.yellow,
+          ),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: ButtonStyle(
+            backgroundColor: WidgetStatePropertyAll(Colors.blueAccent.shade700),
+            shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)))
+          )
+        )
+      ),
     );
   }
 }

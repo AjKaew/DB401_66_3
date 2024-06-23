@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
-import 'location.dart';
+import 'package:weathercast/forecast.dart';
+
+import 'weather.dart';
 
 class Report extends StatefulWidget {
   const Report({super.key});
@@ -10,14 +11,36 @@ class Report extends StatefulWidget {
 }
 
 class _ReportState extends State<Report> {
+  Weather? _weather;
+  bool _progress = false;
+
+  void updateReport() {
+    forecast()
+    .whenComplete(() {
+      if (_progress) {
+        _progress = false;
+        Navigator.pop(context);
+      }
+    })
+    .then((weather) {
+      ScaffoldMessenger.of(context).removeCurrentSnackBar();
+      setState(() {
+        _weather = weather;
+      });
+    })
+    .catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          duration: const Duration(days: 1),
+        )
+      );
+    });
+  }
+
   @override
   void initState() {
-    getCurrentLocation().then(
-      (location) => placemarkFromCoordinates(
-        location.latitude, 
-        location.longitude
-      ).then((placemarks) => print(placemarks.first))
-    );
+    updateReport();
     super.initState();
   }
 
@@ -35,18 +58,60 @@ class _ReportState extends State<Report> {
           ),
         ),
         Container(
-          constraints: const BoxConstraints.tightFor(
-            width: 150,
-            height: 150
-          ),
+          constraints: 
+            _weather == null ? 
+            const BoxConstraints.tightFor(
+              width: 150,
+              height: 150
+            ) : 
+            null,
           decoration: BoxDecoration(
             color: Colors.blueAccent.shade700.withOpacity(0.7),
             borderRadius: BorderRadius.circular(10)
           ),
+          padding: const EdgeInsets.all(20),
           margin: const EdgeInsets.symmetric(vertical: 30),
+          child: 
+            _weather == null ? 
+            null : 
+            Column(
+              children: [
+                Text(
+                  _weather!.place,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineLarge,
+                ),
+                const SizedBox(height: 20,),
+                Text(
+                  '${_weather!.temp}℃',
+                  style: Theme.of(context).textTheme.displayLarge,
+                ),
+                const SizedBox(height: 20,),
+                Text(
+                  _weather!.condition,
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+                const SizedBox(height: 20,),
+                Image.network(_weather!.symbol),
+              ],
+            ),
         ),
         FilledButton(
-          onPressed: () {}, 
+          onPressed: () {
+            showDialog(
+              context: context, 
+              builder: (context) {
+                _progress = true;
+                return const Dialog(
+                  backgroundColor: Colors.transparent,
+                  child: Center(
+                    child: CircularProgressIndicator()
+                  ),
+                );
+              }
+            );
+            updateReport();
+          }, 
           child: const Text('Refresh')
         )
       ],
